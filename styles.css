@@ -202,6 +202,11 @@ fieldset legend { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: up
 .matrix td { vertical-align: top; width: 33%; border-left: 3px solid var(--paper); }
 .matrix h3 { font-size: 1.12rem; margin: 0 0 0.35rem; }
 .matrix p { margin: 0; color: var(--soft); font-size: 0.95rem; }
+.matrix .where {
+  margin: 0 0 0.3rem;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 0.72rem; font-weight: 680; color: var(--muted);
+}
 .matrix .strategic { background: #f3e4dc; }
 .matrix .invest { background: #e7f0ea; }
 .matrix .quick { background: #f6edd6; }
@@ -233,9 +238,23 @@ fieldset legend { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: up
 .notes { padding-bottom: 2rem; }
 .foot { border-top: 1px solid var(--line); padding: 1rem 0 2rem; color: var(--muted); font-size: 0.92rem; }
 
+@media (min-width: 801px) {
+  .matrix .where {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;
+  }
+}
 @media (max-width: 800px) {
   html { scroll-padding-top: 6.6rem; }
   .stats, .split, .legend, .high-list, .guide-grid, .scale { grid-template-columns: 1fr; }
+  .matrix { min-width: 0; }
+  .matrix thead {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); border: 0;
+  }
+  .matrix, .matrix tbody, .matrix tr, .matrix th, .matrix td { display: block; width: auto; }
+  .matrix tbody th { width: auto; background: transparent; padding: 1rem 0 0.35rem; }
+  .matrix td { border-left: 0; margin: 0 0 0.55rem; }
   .resident, .pair { grid-template-columns: 1fr; }
   .stats div { border-top: 1px solid var(--line); }
   .stats div:first-child { border-top: 0; }
