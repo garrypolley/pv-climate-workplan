@@ -45,7 +45,7 @@ a:hover { color: #0f2b20; }
 
 .mast {
   position: sticky; top: 0; z-index: 4;
-  background: rgba(244, 240, 230, 0.94);
+  background: var(--paper);
   border-bottom: 1px solid var(--line);
 }
 .mast-row { display: flex; gap: 1rem; align-items: center; justify-content: space-between; min-height: 3.4rem; flex-wrap: wrap; }
