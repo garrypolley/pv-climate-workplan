@@ -168,6 +168,29 @@ fieldset legend { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: up
 .links { margin: 0.35rem 0 0; padding: 0; list-style: none; font-size: 0.92rem; }
 .empty { padding: 1rem 0 1.5rem; color: var(--soft); }
 
+#feasibility { padding-top: 2.2rem; }
+.source-figure { margin: 0.4rem 0 1.4rem; }
+.source-figure img { width: 100%; height: auto; border: 1px solid var(--line); }
+.source-figure figcaption { margin-top: 0.4rem; color: var(--muted); font-size: 0.92rem; }
+.dimension-list { display: grid; gap: 1.4rem; margin: 0.4rem 0 1.4rem; }
+.dimension { border-top: 3px solid var(--line); padding-top: 0.7rem; }
+.dimension.financial { border-color: var(--clay); }
+.dimension.technical { border-color: var(--green); }
+.dimension.social { border-color: var(--wheat); }
+.dimension.temporal { border-color: var(--support); }
+.scale {
+  list-style: none; display: grid; grid-template-columns: repeat(5, 1fr);
+  gap: 0.6rem; margin: 0 0 0.8rem; padding: 0;
+}
+.scale li { margin: 0; }
+.scale span {
+  display: block; font-family: Fraunces, Georgia, serif; font-size: 1.4rem; font-weight: 620; line-height: 1;
+}
+.scale p { margin: 0.25rem 0 0; color: var(--soft); font-size: 0.92rem; }
+.scorecard { min-width: 720px; }
+.scorecard th, .scorecard td { font-size: 0.95rem; }
+.scorecard tbody th { font-family: "Public Sans", sans-serif; font-weight: 680; letter-spacing: 0; font-size: 0.95rem; }
+
 #crosswalk { padding: 2.2rem 0 0.4rem; }
 .area-block { margin: 0 0 1.6rem; }
 .area-block header p { color: var(--soft); max-width: 44rem; }
@@ -194,7 +217,7 @@ fieldset legend { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: up
 
 @media (max-width: 800px) {
   html { scroll-padding-top: 6.6rem; }
-  .stats, .split, .legend, .high-list, .guide-grid { grid-template-columns: 1fr; }
+  .stats, .split, .legend, .high-list, .guide-grid, .scale { grid-template-columns: 1fr; }
   .resident, .pair { grid-template-columns: 1fr; }
   .stats div { border-top: 1px solid var(--line); }
   .stats div:first-child { border-top: 0; }
