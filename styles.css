@@ -191,6 +191,24 @@ fieldset legend { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: up
 .scorecard th, .scorecard td { font-size: 0.95rem; }
 .scorecard tbody th { font-family: "Public Sans", sans-serif; font-weight: 680; letter-spacing: 0; font-size: 0.95rem; }
 
+#prioritization { padding-top: 2.2rem; }
+.matrix { min-width: 860px; }
+.matrix caption { caption-side: bottom; text-align: left; color: var(--muted); font-size: 0.92rem; padding-top: 0.55rem; }
+.matrix th, .matrix td { padding: 0.75rem 0.7rem; }
+.matrix tbody th {
+  font-family: "Public Sans", sans-serif; font-weight: 680; letter-spacing: 0;
+  font-size: 0.92rem; width: 9.5rem; vertical-align: top;
+}
+.matrix td { vertical-align: top; width: 33%; border-left: 3px solid var(--paper); }
+.matrix h3 { font-size: 1.12rem; margin: 0 0 0.35rem; }
+.matrix p { margin: 0; color: var(--soft); font-size: 0.95rem; }
+.matrix .strategic { background: #f3e4dc; }
+.matrix .invest { background: #e7f0ea; }
+.matrix .quick { background: #f6edd6; }
+.matrix .reassess { background: #ece7df; }
+.matrix .capacity { background: #e4ebe4; }
+.matrix .efficient { background: #f3eee4; }
+
 #crosswalk { padding: 2.2rem 0 0.4rem; }
 .area-block { margin: 0 0 1.6rem; }
 .area-block header p { color: var(--soft); max-width: 44rem; }
