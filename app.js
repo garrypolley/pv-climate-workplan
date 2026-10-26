@@ -16,6 +16,7 @@ const SORTS = [
   { key: "chartImpact", label: "Chart impact" },
   { key: "chartFeasibility", label: "Chart feasibility" },
   { key: "board", label: "Board" },
+  { key: "when", label: "When" },
 ];
 const ratingById = Object.fromEntries(
   GROUP_RATINGS.filter((rating) => actionById[rating.id]).map((rating) => [rating.id, rating]),
@@ -34,6 +35,20 @@ const BOXES = [
 ];
 const BOX_BY_ID = Object.fromEntries(BOXES.map((box) => [box.id, box]));
 const BOARD_RANK = Object.fromEntries(BOXES.map((box, index) => [box.id, index]));
+const WHEN = [
+  { id: "opportunities", name: "2027 Opportunities", className: "opportunities" },
+  { id: "budget", name: "2028 Budget", className: "budget" },
+  { id: "planning", name: "2029/2030 Planning", className: "planning" },
+  { id: "awareness", name: "2030+ Awareness", className: "awareness" },
+];
+const WHEN_BY_ID = Object.fromEntries(WHEN.map((column) => [column.id, column]));
+const WHEN_RANK = Object.fromEntries(WHEN.map((column, index) => [column.id, index]));
+const WHEN_SHORT = {
+  opportunities: "2027",
+  budget: "2028",
+  planning: "2029/30",
+  awareness: "2030+",
+};
 
 const state = {
   q: "",
@@ -210,6 +225,13 @@ function compareActions(a, b) {
     else if (!left) return 1;
     else if (!right) return -1;
     else diff = BOARD_RANK[left.box] - BOARD_RANK[right.box];
+  } else if (state.sort === "when") {
+    const left = recommendedWhen(a);
+    const right = recommendedWhen(b);
+    if (!left && !right) diff = 0;
+    else if (!left) return 1;
+    else if (!right) return -1;
+    else diff = WHEN_RANK[left] - WHEN_RANK[right];
   } else {
     const left = sourceRank(a);
     const right = sourceRank(b);
@@ -229,6 +251,7 @@ function sortLabel() {
     chartImpact: "group impact",
     chartFeasibility: "group feasibility",
     board: "the later sheet",
+    when: "the recommended year",
   };
   const direction = {
     id: state.dir === "asc" ? "1 to 45" : "45 to 1",
@@ -239,6 +262,7 @@ function sortLabel() {
     chartImpact: state.dir === "asc" ? "lower impact first" : "higher impact first",
     chartFeasibility: state.dir === "asc" ? "more challenging first" : "more achievable first",
     board: state.dir === "asc" ? "Strategic Priorities first" : "Efficient Improvements first",
+    when: state.dir === "asc" ? "2027 first" : "2030+ first",
   };
   return `${names[state.sort]}, ${direction[state.sort]}`;
 }
@@ -310,6 +334,7 @@ function renderActions() {
       scoreCell(action, "impact"),
       scoreCell(action, "feasibility"),
       boardCell(action),
+      whenCell(action),
     ]));
   }
 
@@ -653,6 +678,85 @@ function renderBoard() {
   );
 }
 
+function recommendedWhen(action) {
+  const place = boardById[action.id];
+  if (!place) return null;
+  if (place.box === "reassess") return "awareness";
+  if (place.box === "strategic" || place.box === "capacity") return "planning";
+  return action.cost === "Low" ? "opportunities" : "budget";
+}
+
+function whenCell(action) {
+  const when = recommendedWhen(action);
+  if (!when) return el("td", { class: "when-cell", text: "—" });
+  return el("td", { class: "when-cell" }, [
+    el("a", { href: `#when-${when}`, text: WHEN_SHORT[when] }),
+  ]);
+}
+
+function sequenceReason(action, place) {
+  const box = BOX_BY_ID[place.box];
+  const rating = ratingById[action.id];
+  const parts = [`${box.name}. Printed cost ${action.cost}.`];
+  if (place.writtenOn) parts.push(`Written on the sticker for ${place.writtenOn}.`);
+  if (rating) {
+    parts.push(`Chart impact ${rating.impact.toFixed(1)}, feasibility ${rating.feasibility.toFixed(1)}.`);
+    const chartBox = chartBoxFor(rating);
+    if (chartBox.id !== place.box) parts.push(`The chart reading was ${chartBox.name}.`);
+  } else {
+    parts.push("No point on the chart.");
+  }
+  return parts.join(" ");
+}
+
+function renderSequence() {
+  const mount = document.getElementById("sequence-columns");
+  const grid = el("div", { class: "when-grid" });
+  const buckets = Object.fromEntries(WHEN.map((column) => [column.id, []]));
+  for (const action of ACTIONS) {
+    const when = recommendedWhen(action);
+    if (when) buckets[when].push(action);
+  }
+  for (const column of WHEN) {
+    const boxFirst = { quick: 0, "high-value": 1, efficient: 2, strategic: 0, capacity: 1, reassess: 0 };
+    const items = buckets[column.id].sort((a, b) => {
+      const boxDiff = boxFirst[boardById[a.id].box] - boxFirst[boardById[b.id].box];
+      if (boxDiff) return boxDiff;
+      const left = ratingById[a.id];
+      const right = ratingById[b.id];
+      if (left && !right) return -1;
+      if (!left && right) return 1;
+      if (left && right && left.impact !== right.impact) return right.impact - left.impact;
+      if (left && right && left.feasibility !== right.feasibility) return right.feasibility - left.feasibility;
+      return a.id - b.id;
+    });
+    const list = el("ol");
+    for (const action of items) {
+      const place = boardById[action.id];
+      list.append(el("li", {}, [
+        el("a", { href: `#a-${action.id}`, text: `${action.id}. ${action.name}` }),
+        el("p", { class: "note", text: sequenceReason(action, place) }),
+      ]));
+    }
+    grid.append(el("article", { class: `when-col ${column.className}`, id: `when-${column.id}` }, [
+      el("h3", { text: column.name }),
+      el("p", { class: "note", text: `${items.length} actions` }),
+      list,
+    ]));
+  }
+  mount.replaceChildren(grid);
+
+  const waiting = ACTIONS.filter((action) => !recommendedWhen(action));
+  const notes = document.getElementById("sequence-notes");
+  const list = el("ul", { class: "plain" });
+  for (const action of waiting) list.append(el("li", {}, [el("a", { href: `#a-${action.id}`, text: `${action.id}. ${action.name}` })]));
+  notes.replaceChildren(
+    el("p", { text: "These rows are not on the sequencing sheet. They have no box on the board, so the recommendation has no year for them." }),
+    list,
+    el("p", { text: "47 and 48 are pencil circles on the board and are not rows in the table, so they are not given a year." }),
+  );
+}
+
 function reveal(actionId) {
   state.q = "";
   state.impact = "All";
@@ -675,7 +779,7 @@ function openHash() {
   if (hash.startsWith("a-")) {
     const id = Number(hash.slice(2));
     if (actionById[id]) reveal(id);
-  } else if (hash.startsWith("g-") || hash.startsWith("rate-") || hash.startsWith("box-")) {
+  } else if (hash.startsWith("g-") || hash.startsWith("rate-") || hash.startsWith("box-") || hash.startsWith("when-")) {
     document.getElementById(hash)?.scrollIntoView({ block: "center" });
   }
 }
@@ -698,6 +802,7 @@ renderCrosswalk();
 renderResidents();
 renderRatings();
 renderBoard();
+renderSequence();
 openHash();
 window.addEventListener("hashchange", openHash);
 
