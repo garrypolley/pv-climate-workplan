@@ -4,11 +4,24 @@ const actionById = Object.fromEntries(ACTIONS.map((a) => [a.id, a]));
 const IMPACTS = ["Direct", "Enabling", "Indirect", "Supporting"];
 const COSTS = ["High", "Medium", "Low"];
 
+const IMPACT_RANK = { Direct: 0, Enabling: 1, Indirect: 2, Supporting: 3 };
+const COST_RANK = { Low: 0, Medium: 1, High: 2 };
+const AREA_RANK = { EL: 0, EE: 1, T: 2, W: 3 };
+const SORTS = [
+  { key: "id", label: "ID" },
+  { key: "name", label: "Action" },
+  { key: "source", label: "Source" },
+  { key: "impact", label: "GHG impact" },
+  { key: "cost", label: "Relative cost" },
+];
+
 const state = {
   q: "",
   impact: "All",
   cost: "All",
   origin: "All",
+  sort: "id",
+  dir: "asc",
 };
 
 function el(tag, attrs = {}, children = []) {
@@ -150,52 +163,119 @@ function codeButton(id) {
   });
 }
 
+function sourceRank(action) {
+  if (!action.guideIds.length) return [1, 0, 0];
+  const match = action.guideIds[0].match(/^([A-Z]+)(\d+)$/);
+  return [0, AREA_RANK[match[1]] ?? 9, Number(match[2])];
+}
+
+function compareActions(a, b) {
+  let diff = 0;
+  if (state.sort === "id") diff = a.id - b.id;
+  else if (state.sort === "name") diff = a.name.localeCompare(b.name);
+  else if (state.sort === "impact") diff = IMPACT_RANK[a.impact] - IMPACT_RANK[b.impact];
+  else if (state.sort === "cost") diff = COST_RANK[a.cost] - COST_RANK[b.cost];
+  else {
+    const left = sourceRank(a);
+    const right = sourceRank(b);
+    diff = left[0] - right[0] || left[1] - right[1] || left[2] - right[2];
+  }
+  if (diff === 0) return a.id - b.id;
+  return state.dir === "asc" ? diff : -diff;
+}
+
+function sortLabel() {
+  const names = {
+    id: "table order",
+    name: "action name",
+    source: "guide code",
+    impact: "greenhouse-gas impact",
+    cost: "relative cost",
+  };
+  const direction = {
+    id: state.dir === "asc" ? "1 to 45" : "45 to 1",
+    name: state.dir === "asc" ? "A to Z" : "Z to A",
+    source: state.dir === "asc" ? "EL through committee" : "committee through EL",
+    impact: state.dir === "asc" ? "Direct first" : "Supporting first",
+    cost: state.dir === "asc" ? "Low first" : "High first",
+  };
+  return `${names[state.sort]}, ${direction[state.sort]}`;
+}
+
 function renderActions() {
   const list = document.getElementById("action-list");
   list.replaceChildren();
-  const shown = ACTIONS.filter(matches);
+  const shown = ACTIONS.filter(matches).sort(compareActions);
   const count = document.getElementById("result-count");
-  count.textContent = shown.length === ACTIONS.length
+  const total = shown.length === ACTIONS.length
     ? `${ACTIONS.length} actions`
     : `${shown.length} of ${ACTIONS.length} actions`;
+  count.textContent = `${total}, sorted by ${sortLabel()}`;
 
   if (!shown.length) {
     list.append(el("p", { class: "empty", text: "Nothing matches those filters. Clear one and the rows will come back." }));
     return;
   }
 
+  const head = el("tr");
+  for (const column of SORTS) {
+    const active = state.sort === column.key;
+    const aria = active ? (state.dir === "asc" ? "ascending" : "descending") : "none";
+    const mark = !active ? "" : state.dir === "asc" ? " ↑" : " ↓";
+    head.append(el("th", { scope: "col", "aria-sort": aria }, [
+      el("button", {
+        type: "button",
+        text: column.label + mark,
+        onclick: () => {
+          if (state.sort === column.key) state.dir = state.dir === "asc" ? "desc" : "asc";
+          else {
+            state.sort = column.key;
+            state.dir = "asc";
+          }
+          renderActions();
+        },
+      }),
+    ]));
+  }
+
+  const body = el("tbody");
   for (const action of shown) {
     const codes = el("div", { class: "codes" });
     if (action.guideIds.length) {
       for (const id of action.guideIds) codes.append(codeButton(id));
     } else {
-      codes.append(el("span", { class: "note", text: "Source: Environmental Committee" }));
+      codes.append(el("span", { text: "Environmental Committee" }));
     }
-    const bodyKids = [
-      el("h3", { text: action.name }),
-      el("p", { class: "desc", text: action.description }),
-      codes,
-    ];
     if (action.sourceNote) {
-      bodyKids.push(el("p", { class: "note", text: `Local note in the source cell: ${action.sourceNote}` }));
+      codes.append(el("p", { class: "note", text: action.sourceNote }));
     }
+    const actionCell = el("td", {}, [
+      el("p", { class: "action-name", text: action.name }),
+      el("p", { class: "desc", text: action.description }),
+    ]);
     if (action.links?.length) {
       const links = el("ul", { class: "links" });
       for (const link of action.links) {
         links.append(el("li", {}, [el("a", { href: link.href, text: link.label })]));
       }
-      bodyKids.push(links);
+      actionCell.append(links);
     }
-    const article = el("article", { class: "action", id: `a-${action.id}` }, [
-      el("div", { class: "num", text: String(action.id).padStart(2, "0") }),
-      el("div", {}, bodyKids),
-      el("div", { class: "meta" }, [
-        el("span", { class: `tag ${action.impact.toLowerCase()}`, text: action.impact }),
-        el("span", { class: "tag cost", text: `${action.cost} cost` }),
-      ]),
-    ]);
-    list.append(article);
+    body.append(el("tr", { id: `a-${action.id}` }, [
+      el("td", { class: "num", text: String(action.id) }),
+      actionCell,
+      el("td", {}, [codes]),
+      el("td", {}, [el("span", { class: `tag ${action.impact.toLowerCase()}`, text: action.impact })]),
+      el("td", {}, [el("span", { class: "tag cost", text: action.cost })]),
+    ]));
   }
+
+  list.append(el("div", { class: "table-scroll" }, [
+    el("table", { class: "sheet" }, [
+      el("caption", { class: "sr", text: "Prairie Village climate actions. Sort with the column buttons." }),
+      el("thead", {}, [head]),
+      body,
+    ]),
+  ]));
 }
 
 function renderCrosswalk() {
