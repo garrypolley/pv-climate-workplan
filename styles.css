@@ -214,6 +214,25 @@ fieldset legend { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: up
 .matrix .capacity { background: #e4ebe4; }
 .matrix .efficient { background: #f3eee4; }
 
+#ratings { padding-top: 2.2rem; }
+.chart-scroll { overflow-x: auto; border: 1px solid var(--line); background: #fbf8f1; }
+.chart-scroll svg { display: block; width: 100%; min-width: 720px; height: auto; }
+.gridline { stroke: var(--line); stroke-width: 1; }
+.axis-label, .axis-title, .point-link text { font-family: "Public Sans", sans-serif; }
+.axis-label { font-size: 13px; fill: var(--muted); }
+.axis-title { font-size: 14px; fill: var(--ink); font-weight: 680; }
+.point-link text { font-size: 15px; fill: var(--ink); font-weight: 680; }
+.point-link:hover text, .point-link:focus text { fill: var(--clay); }
+.dot { fill: var(--green); }
+.dot.extra { fill: var(--clay); }
+.point-link.off-list text { fill: var(--clay); }
+.plot-point:has(:target) .dot { fill: var(--clay); }
+.plot-point:has(:target) text { fill: var(--clay); }
+#action-list .sheet { min-width: 980px; }
+td.score { font-variant-numeric: tabular-nums; white-space: nowrap; }
+td.score a { font-weight: 680; text-decoration: none; }
+td.score a:hover { text-decoration: underline; }
+
 #crosswalk { padding: 2.2rem 0 0.4rem; }
 .area-block { margin: 0 0 1.6rem; }
 .area-block header p { color: var(--soft); max-width: 44rem; }

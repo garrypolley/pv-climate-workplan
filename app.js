@@ -13,7 +13,12 @@ const SORTS = [
   { key: "source", label: "Source" },
   { key: "impact", label: "GHG impact" },
   { key: "cost", label: "Relative cost" },
+  { key: "chartImpact", label: "Chart impact" },
+  { key: "chartFeasibility", label: "Chart feasibility" },
 ];
+const ratingById = Object.fromEntries(
+  GROUP_RATINGS.filter((rating) => actionById[rating.id]).map((rating) => [rating.id, rating]),
+);
 
 const state = {
   q: "",
@@ -175,7 +180,15 @@ function compareActions(a, b) {
   else if (state.sort === "name") diff = a.name.localeCompare(b.name);
   else if (state.sort === "impact") diff = IMPACT_RANK[a.impact] - IMPACT_RANK[b.impact];
   else if (state.sort === "cost") diff = COST_RANK[a.cost] - COST_RANK[b.cost];
-  else {
+  else if (state.sort === "chartImpact" || state.sort === "chartFeasibility") {
+    const key = state.sort === "chartImpact" ? "impact" : "feasibility";
+    const left = ratingById[a.id];
+    const right = ratingById[b.id];
+    if (!left && !right) diff = 0;
+    else if (!left) return 1;
+    else if (!right) return -1;
+    else diff = left[key] - right[key];
+  } else {
     const left = sourceRank(a);
     const right = sourceRank(b);
     diff = left[0] - right[0] || left[1] - right[1] || left[2] - right[2];
@@ -191,6 +204,8 @@ function sortLabel() {
     source: "guide code",
     impact: "greenhouse-gas impact",
     cost: "relative cost",
+    chartImpact: "group impact",
+    chartFeasibility: "group feasibility",
   };
   const direction = {
     id: state.dir === "asc" ? "1 to 45" : "45 to 1",
@@ -198,6 +213,8 @@ function sortLabel() {
     source: state.dir === "asc" ? "EL through committee" : "committee through EL",
     impact: state.dir === "asc" ? "Direct first" : "Supporting first",
     cost: state.dir === "asc" ? "Low first" : "High first",
+    chartImpact: state.dir === "asc" ? "lower impact first" : "higher impact first",
+    chartFeasibility: state.dir === "asc" ? "more challenging first" : "more achievable first",
   };
   return `${names[state.sort]}, ${direction[state.sort]}`;
 }
@@ -266,6 +283,8 @@ function renderActions() {
       el("td", {}, [codes]),
       el("td", {}, [el("span", { class: `tag ${action.impact.toLowerCase()}`, text: action.impact })]),
       el("td", {}, [el("span", { class: "tag cost", text: action.cost })]),
+      scoreCell(action, "impact"),
+      scoreCell(action, "feasibility"),
     ]));
   }
 
@@ -335,6 +354,137 @@ function renderResidents() {
   }
 }
 
+function scoreCell(action, key) {
+  const rating = ratingById[action.id];
+  if (!rating) return el("td", { class: "score", text: "—" });
+  const label = key === "impact" ? "impact" : "feasibility";
+  return el("td", { class: "score" }, [
+    el("a", {
+      href: `#rate-${action.id}`,
+      text: rating[key].toFixed(1),
+      "aria-label": `${action.name}, chart ${label} ${rating[key].toFixed(1)}`,
+    }),
+  ]);
+}
+
+function svgEl(tag, attrs = {}, children = []) {
+  const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [key, value] of Object.entries(attrs)) {
+    if (key === "text") node.textContent = value;
+    else node.setAttribute(key, value);
+  }
+  for (const child of children) node.append(child);
+  return node;
+}
+
+function renderRatings() {
+  const mount = document.getElementById("rating-chart");
+  const notes = document.getElementById("rating-notes");
+  const width = 860;
+  const height = 560;
+  const pad = { l: 54, r: 28, t: 36, b: 48 };
+  const x0 = 2.5;
+  const x1 = 5.1;
+  const y0 = 1.7;
+  const y1 = 5.8;
+  const px = (feasibility) => pad.l + ((feasibility - x0) / (x1 - x0)) * (width - pad.l - pad.r);
+  const py = (impact) => pad.t + ((y1 - impact) / (y1 - y0)) * (height - pad.t - pad.b);
+  const svg = svgEl("svg", { viewBox: `0 0 ${width} ${height}`, role: "group", "aria-label": "Group ratings. Each number opens its row." });
+
+  const axisValue = (value) => (value % 1 === 0 ? String(value) : value.toFixed(1));
+  for (let feasibility = 3; feasibility <= 5.001; feasibility += 0.5) {
+    const x = px(feasibility);
+    svg.append(svgEl("line", { x1: x, x2: x, y1: pad.t, y2: height - pad.b, class: "gridline" }));
+    svg.append(svgEl("text", { class: "axis-label", x, y: height - pad.b + 22, "text-anchor": "middle", text: axisValue(feasibility) }));
+  }
+  for (let impact = 2; impact <= 5.501; impact += 0.5) {
+    const y = py(impact);
+    svg.append(svgEl("line", { x1: pad.l, x2: width - pad.r, y1: y, y2: y, class: "gridline" }));
+    svg.append(svgEl("text", { class: "axis-label", x: pad.l - 10, y: y + 4, "text-anchor": "end", text: axisValue(impact) }));
+  }
+  svg.append(svgEl("text", {
+    class: "axis-title",
+    x: (pad.l + width - pad.r) / 2,
+    y: height - 8,
+    "text-anchor": "middle",
+    text: "Feasibility",
+  }));
+  const axisMid = (pad.t + height - pad.b) / 2;
+  svg.append(svgEl("text", {
+    class: "axis-title",
+    x: 16,
+    y: axisMid,
+    "text-anchor": "middle",
+    transform: `rotate(-90 16 ${axisMid})`,
+    text: "Impact",
+  }));
+
+  const groups = new Map();
+  for (const rating of GROUP_RATINGS) {
+    const key = `${rating.impact.toFixed(1)}|${rating.feasibility.toFixed(1)}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(rating);
+  }
+  const placed = [];
+  const ordered = [...groups.values()].sort((a, b) => a[0].feasibility - b[0].feasibility || b[0].impact - a[0].impact);
+  for (const ratings of ordered) {
+    const x = px(ratings[0].feasibility);
+    const y = py(ratings[0].impact);
+    const group = svgEl("g", { class: "plot-point" });
+    const onChartOnly = ratings.every((rating) => !actionById[rating.id]);
+    group.append(svgEl("circle", { cx: x, cy: y, r: 5.5, class: onChartOnly ? "dot extra" : "dot" }));
+    const labels = ratings.map((rating) => String(rating.id));
+    const widths = labels.map((label) => label.length * 8.4 + 8);
+    const total = widths.reduce((sum, item) => sum + item, 0) - 8;
+    let labelY = y - 14;
+    let guard = 0;
+    while (guard < 14 && placed.some((spot) => Math.abs(spot.x - x) < (spot.w + total) / 2 + 8 && Math.abs(spot.y - labelY) < 16)) {
+      labelY -= 16;
+      guard += 1;
+    }
+    if (labelY < 16) labelY = y + 20;
+    placed.push({ x, y: labelY, w: total });
+    let cursor = x - total / 2;
+    ratings.forEach((rating, index) => {
+      const label = String(rating.id);
+      const action = actionById[rating.id];
+      const attrs = { class: action ? "point-link" : "point-link off-list", id: `rate-${rating.id}` };
+      if (action) attrs.href = `#a-${rating.id}`;
+      const link = svgEl("a", attrs);
+      link.append(svgEl("text", {
+        x: cursor,
+        y: labelY,
+        text: label,
+        "aria-label": action
+          ? `${label}. ${action.name}. Impact ${rating.impact.toFixed(1)}, feasibility ${rating.feasibility.toFixed(1)}.`
+          : `${label} is on the chart and is not one of the 45 rows. Impact ${rating.impact.toFixed(1)}, feasibility ${rating.feasibility.toFixed(1)}.`,
+      }));
+      group.append(link);
+      cursor += widths[index];
+    });
+    svg.append(group);
+  }
+
+  mount.replaceChildren(el("div", { class: "chart-scroll" }, [svg]));
+
+  const missing = ACTIONS.filter((action) => !ratingById[action.id]);
+  const extras = GROUP_RATINGS.filter((rating) => !actionById[rating.id]);
+  const missingList = el("ul", { class: "plain" });
+  for (const action of missing) {
+    missingList.append(el("li", {}, [
+      el("a", { href: `#a-${action.id}`, text: `${action.id}. ${action.name}` }),
+    ]));
+  }
+  const extraText = extras
+    .map((rating) => `${rating.id} (impact ${rating.impact.toFixed(1)}, feasibility ${rating.feasibility.toFixed(1)})`)
+    .join(" and ");
+  notes.replaceChildren(
+    el("p", { text: "These rows have no point on the chart." }),
+    missingList,
+    el("p", { text: `Two labels on the chart are not rows in the table: ${extraText}. Those labels are marked in clay.` }),
+  );
+}
+
 function reveal(actionId) {
   state.q = "";
   state.impact = "All";
@@ -357,8 +507,8 @@ function openHash() {
   if (hash.startsWith("a-")) {
     const id = Number(hash.slice(2));
     if (actionById[id]) reveal(id);
-  } else if (hash.startsWith("g-")) {
-    document.getElementById(hash)?.scrollIntoView({ block: "start" });
+  } else if (hash.startsWith("g-") || hash.startsWith("rate-")) {
+    document.getElementById(hash)?.scrollIntoView({ block: "center" });
   }
 }
 
@@ -378,7 +528,9 @@ chipSet("origin-filters", [
 renderActions();
 renderCrosswalk();
 renderResidents();
+renderRatings();
 openHash();
+window.addEventListener("hashchange", openHash);
 
 const report = coverage();
 if (report.missing.length || report.duplicated.length) {
