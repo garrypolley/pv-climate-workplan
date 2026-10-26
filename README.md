@@ -6,7 +6,7 @@ The guide’s chapter “Prairie Village’s Role in Climate Action” lists 38 
 
 The table was transcribed from photographs. The sheet shows no title, date, or adoption line. Guide wording comes from the city’s PDF.
 
-The same page carries the four-question feasibility scale, the six-box prioritization matrix, and the group’s impact-and-feasibility chart. The chart scores were read from a photograph to the nearest tenth. Eight rows have no point on that chart. The six boxes do not yet have actions filed into them.
+The same page carries the four-question feasibility scale, the six-box prioritization matrix, the group’s impact-and-feasibility chart, and the later sheet that files actions into those six boxes. The chart scores were read from a photograph to the nearest tenth. The page lists where the sheet and that chart disagree.
 
 Live site: https://climate.garrypolley.com
 

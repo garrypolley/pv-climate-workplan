@@ -15,10 +15,25 @@ const SORTS = [
   { key: "cost", label: "Relative cost" },
   { key: "chartImpact", label: "Chart impact" },
   { key: "chartFeasibility", label: "Chart feasibility" },
+  { key: "board", label: "Board" },
 ];
 const ratingById = Object.fromEntries(
   GROUP_RATINGS.filter((rating) => actionById[rating.id]).map((rating) => [rating.id, rating]),
 );
+const ratingByLabel = Object.fromEntries(GROUP_RATINGS.map((rating) => [String(rating.id), rating]));
+const boardById = Object.fromEntries(
+  BOARD.filter((place) => place.id != null && actionById[place.id]).map((place) => [place.id, place]),
+);
+const BOXES = [
+  { id: "strategic", name: "Strategic Priorities", short: "Strategic", impact: "higher", feasibility: "lower", className: "strategic" },
+  { id: "high-value", name: "High-Value Investments", short: "High-value", impact: "higher", feasibility: "moderate", className: "invest" },
+  { id: "quick", name: "Quick Wins", short: "Quick win", impact: "higher", feasibility: "higher", className: "quick" },
+  { id: "reassess", name: "Reassess or Deprioritize", short: "Reassess", impact: "lower", feasibility: "lower", className: "reassess" },
+  { id: "capacity", name: "Build Capacity", short: "Capacity", impact: "lower", feasibility: "moderate", className: "capacity" },
+  { id: "efficient", name: "Efficient Improvements", short: "Efficient", impact: "lower", feasibility: "higher", className: "efficient" },
+];
+const BOX_BY_ID = Object.fromEntries(BOXES.map((box) => [box.id, box]));
+const BOARD_RANK = Object.fromEntries(BOXES.map((box, index) => [box.id, index]));
 
 const state = {
   q: "",
@@ -188,6 +203,13 @@ function compareActions(a, b) {
     else if (!left) return 1;
     else if (!right) return -1;
     else diff = left[key] - right[key];
+  } else if (state.sort === "board") {
+    const left = boardById[a.id];
+    const right = boardById[b.id];
+    if (!left && !right) diff = 0;
+    else if (!left) return 1;
+    else if (!right) return -1;
+    else diff = BOARD_RANK[left.box] - BOARD_RANK[right.box];
   } else {
     const left = sourceRank(a);
     const right = sourceRank(b);
@@ -206,6 +228,7 @@ function sortLabel() {
     cost: "relative cost",
     chartImpact: "group impact",
     chartFeasibility: "group feasibility",
+    board: "the later sheet",
   };
   const direction = {
     id: state.dir === "asc" ? "1 to 45" : "45 to 1",
@@ -215,6 +238,7 @@ function sortLabel() {
     cost: state.dir === "asc" ? "Low first" : "High first",
     chartImpact: state.dir === "asc" ? "lower impact first" : "higher impact first",
     chartFeasibility: state.dir === "asc" ? "more challenging first" : "more achievable first",
+    board: state.dir === "asc" ? "Strategic Priorities first" : "Efficient Improvements first",
   };
   return `${names[state.sort]}, ${direction[state.sort]}`;
 }
@@ -285,6 +309,7 @@ function renderActions() {
       el("td", {}, [el("span", { class: "tag cost", text: action.cost })]),
       scoreCell(action, "impact"),
       scoreCell(action, "feasibility"),
+      boardCell(action),
     ]));
   }
 
@@ -485,6 +510,149 @@ function renderRatings() {
   );
 }
 
+function boardCell(action) {
+  const place = boardById[action.id];
+  if (!place) return el("td", { class: "board-cell", text: "—" });
+  const box = BOX_BY_ID[place.box];
+  return el("td", { class: "board-cell" }, [
+    el("a", { href: `#box-${box.id}`, text: box.short }),
+  ]);
+}
+
+function chartBoxFor(rating) {
+  const impact = rating.impact >= 4.3 ? "higher" : "lower";
+  const feasibility = rating.feasibility < 3.6 ? "lower" : rating.feasibility < 4.2 ? "moderate" : "higher";
+  return BOXES.find((box) => box.impact === impact && box.feasibility === feasibility);
+}
+
+function rowLink(id, name) {
+  return el("a", { href: `#a-${id}`, text: name ? `${id}. ${name}` : String(id) });
+}
+
+function renderBoard() {
+  const mount = document.getElementById("board-boxes");
+  const grid = el("div", { class: "board-grid" });
+  for (const box of BOXES) {
+    const places = BOARD.filter((place) => place.box === box.id);
+    const chips = el("div", { class: "stickers" });
+    const ordered = [...places].sort((a, b) => {
+      if (a.scribbled) return 1;
+      if (b.scribbled) return -1;
+      return String(a.id).localeCompare(String(b.id), undefined, { numeric: true });
+    });
+    for (const place of ordered) {
+      const classes = ["sticker", place.color];
+      if (place.ring) classes.push("ring");
+      if (place.scribbled) classes.push("scribbled");
+      const label = place.scribbled ? "×" : String(place.id);
+      const action = place.id != null ? actionById[place.id] : null;
+      const attrs = { class: classes.join(" "), text: label };
+      if (place.scribbled) attrs["aria-label"] = "Yellow sticker scribbled out. The number is not readable.";
+      else if (place.writtenOn) attrs["aria-label"] = `${place.id}, written on the sticker for ${place.writtenOn}`;
+      else if (!action) attrs["aria-label"] = `${place.id} is on the sheet and is not one of the 45 rows`;
+      const chip = action ? el("a", { ...attrs, href: `#a-${place.id}` }) : el("span", attrs);
+      chips.append(chip);
+    }
+    const cell = el("article", { class: `board-box box ${box.className}`, id: `box-${box.id}` }, [
+      el("h3", { text: box.name }),
+      chips,
+    ]);
+    if (box.id === "high-value") {
+      cell.append(el("p", { class: "note board-note", text: "16 and 17 are written on the sticker for 23." }));
+    }
+    if (box.id === "efficient") {
+      cell.append(el("p", { class: "note board-note", text: "One yellow sticker is scribbled out. The number is not readable." }));
+    }
+    grid.append(cell);
+  }
+  mount.replaceChildren(grid);
+
+  const diff = document.getElementById("board-diff");
+  const lower = [];
+  const higher = [];
+  const columnOnly = [];
+  const same = [];
+  for (const place of BOARD) {
+    if (place.scribbled || place.id == null) continue;
+    const rating = ratingByLabel[String(place.id)];
+    if (!rating) continue;
+    const chartBox = chartBoxFor(rating);
+    const boardBox = BOX_BY_ID[place.box];
+    const action = actionById[place.id];
+    const item = { place, rating, chartBox, boardBox, action };
+    if (chartBox.id === boardBox.id) same.push(item);
+    else if (chartBox.impact !== boardBox.impact && boardBox.impact === "lower") lower.push(item);
+    else if (chartBox.impact !== boardBox.impact) higher.push(item);
+    else columnOnly.push(item);
+  }
+  const byImpact = (a, b) => b.rating.impact - a.rating.impact || Number(a.place.id) - Number(b.place.id);
+  lower.sort(byImpact);
+  higher.sort(byImpact);
+  columnOnly.sort((a, b) => Math.abs(BOARD_RANK[b.chartBox.id] - BOARD_RANK[b.boardBox.id]) - Math.abs(BOARD_RANK[a.chartBox.id] - BOARD_RANK[a.boardBox.id]) || Number(a.place.id) - Number(b.place.id));
+  const listFor = (items) => {
+    const list = el("ul", { class: "plain" });
+    for (const item of items) {
+      const who = item.action
+        ? rowLink(item.action.id, item.action.name)
+        : el("span", { text: `${item.place.id}, which is not a row in the table` });
+      const sentence = ` Chart impact ${item.rating.impact.toFixed(1)}, feasibility ${item.rating.feasibility.toFixed(1)}, which reads as ${item.chartBox.name}. The sheet puts it in ${item.boardBox.name}.`;
+      list.append(el("li", {}, [who, el("span", { text: sentence })]));
+    }
+    return list;
+  };
+  const sameLine = el("p", {}, [el("span", { text: "The same box on both readings: " })]);
+  same
+    .sort((a, b) => String(a.place.id).localeCompare(String(b.place.id), undefined, { numeric: true }))
+    .forEach((item, index) => {
+      if (index) sameLine.append(el("span", { text: ", " }));
+      if (item.action) sameLine.append(el("a", { href: `#a-${item.action.id}`, text: String(item.action.id) }));
+      else sameLine.append(el("span", { text: `${item.place.id} (not a table row)` }));
+    });
+  sameLine.append(el("span", { text: "." }));
+
+  const chartOnly = GROUP_RATINGS.filter((rating) => !BOARD.some((place) => String(place.id) === String(rating.id)));
+  const sheetOnly = BOARD.filter((place) => place.id != null && !place.scribbled && !ratingByLabel[String(place.id)]);
+  const neither = ACTIONS.filter((action) => !ratingById[action.id] && !boardById[action.id]);
+
+  const chartOnlyList = el("ul", { class: "plain" });
+  for (const rating of chartOnly) {
+    const action = actionById[rating.id];
+    chartOnlyList.append(el("li", {}, [
+      action ? rowLink(action.id, action.name) : el("span", { text: String(rating.id) }),
+      el("span", { text: action
+        ? " was on the chart and is not on the sheet."
+        : " was on the chart, is not on the sheet, and is not a row in the table." }),
+    ]));
+  }
+  const sheetOnlyList = el("ul", { class: "plain" });
+  for (const place of sheetOnly) {
+    const action = actionById[place.id];
+    const box = BOX_BY_ID[place.box];
+    sheetOnlyList.append(el("li", {}, [
+      action ? rowLink(action.id, action.name) : el("span", { text: String(place.id) }),
+      el("span", { text: `${action ? "" : ", which is not a row in the table,"} is in ${box.name} on the sheet and has no point on the chart.` }),
+    ]));
+  }
+  const neitherList = el("ul", { class: "plain" });
+  for (const action of neither) neitherList.append(el("li", {}, [rowLink(action.id, action.name)]));
+
+  diff.replaceChildren(
+    el("h3", { text: "Lower impact on the sheet than on the chart" }),
+    listFor(lower),
+    el("h3", { text: "Higher impact on the sheet than on the chart" }),
+    listFor(higher),
+    el("h3", { text: "Same impact row, different feasibility column" }),
+    listFor(columnOnly),
+    sameLine,
+    el("h3", { text: "On the chart and not on the sheet" }),
+    chartOnlyList,
+    el("h3", { text: "On the sheet and not on the chart" }),
+    sheetOnlyList,
+    el("h3", { text: "On neither" }),
+    neitherList,
+  );
+}
+
 function reveal(actionId) {
   state.q = "";
   state.impact = "All";
@@ -507,7 +675,7 @@ function openHash() {
   if (hash.startsWith("a-")) {
     const id = Number(hash.slice(2));
     if (actionById[id]) reveal(id);
-  } else if (hash.startsWith("g-") || hash.startsWith("rate-")) {
+  } else if (hash.startsWith("g-") || hash.startsWith("rate-") || hash.startsWith("box-")) {
     document.getElementById(hash)?.scrollIntoView({ block: "center" });
   }
 }
@@ -529,6 +697,7 @@ renderActions();
 renderCrosswalk();
 renderResidents();
 renderRatings();
+renderBoard();
 openHash();
 window.addEventListener("hashchange", openHash);
 

@@ -207,12 +207,12 @@ fieldset legend { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: up
   text-transform: uppercase; letter-spacing: 0.08em;
   font-size: 0.72rem; font-weight: 680; color: var(--muted);
 }
-.matrix .strategic { background: #f3e4dc; }
-.matrix .invest { background: #e7f0ea; }
-.matrix .quick { background: #f6edd6; }
-.matrix .reassess { background: #ece7df; }
-.matrix .capacity { background: #e4ebe4; }
-.matrix .efficient { background: #f3eee4; }
+.box.strategic { background: #f3e4dc; }
+.box.invest { background: #e7f0ea; }
+.box.quick { background: #f6edd6; }
+.box.reassess { background: #ece7df; }
+.box.capacity { background: #e4ebe4; }
+.box.efficient { background: #f3eee4; }
 
 #ratings { padding-top: 2.2rem; }
 .chart-scroll { overflow-x: auto; border: 1px solid var(--line); background: #fbf8f1; }
@@ -228,7 +228,30 @@ fieldset legend { font-size: 0.75rem; letter-spacing: 0.08em; text-transform: up
 .point-link.off-list text { fill: var(--clay); }
 .plot-point:has(:target) .dot { fill: var(--clay); }
 .plot-point:has(:target) text { fill: var(--clay); }
-#action-list .sheet { min-width: 980px; }
+#action-list .sheet { min-width: 1120px; }
+td.board-cell a { font-weight: 680; text-decoration: none; white-space: nowrap; }
+td.board-cell a:hover { text-decoration: underline; }
+
+#board { padding-top: 2.2rem; }
+.board-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.55rem; margin: 0.4rem 0 1.2rem; }
+.board-box { padding: 0.75rem 0.8rem 0.9rem; min-height: 9rem; }
+.board-box h3 { font-size: 1.08rem; margin: 0 0 0.55rem; }
+.board-box .where { margin: 0 0 0.2rem; }
+.stickers { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; }
+.sticker {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 2.1rem; height: 2.1rem; padding: 0 0.4rem; border-radius: 999px;
+  font-weight: 680; text-decoration: none; color: var(--ink);
+  border: 2px solid transparent;
+}
+.sticker.green { background: #b7d7a8; }
+.sticker.pink { background: #f3a6c0; }
+.sticker.yellow { background: #f6e27a; }
+.sticker.pencil { background: transparent; border-color: var(--ink); border-style: dashed; }
+.sticker.ring { outline: 2px solid var(--ink); outline-offset: 2px; }
+.sticker.scribbled { letter-spacing: 0; }
+.sticker:hover { color: var(--clay); }
+.board-note { margin: 0.55rem 0 0; }
 td.score { font-variant-numeric: tabular-nums; white-space: nowrap; }
 td.score a { font-weight: 680; text-decoration: none; }
 td.score a:hover { text-decoration: underline; }
@@ -276,6 +299,7 @@ td.score a:hover { text-decoration: underline; }
   .matrix tr, .matrix th, .matrix td { display: block; width: auto; }
   .matrix tbody th { width: auto; background: transparent; padding: 1rem 0 0.35rem; }
   .matrix td { border-left: 0; margin: 0 0 0.55rem; }
+  .board-grid { grid-template-columns: 1fr; }
   .resident, .pair { grid-template-columns: 1fr; }
   .stats div { border-top: 1px solid var(--line); }
   .stats div:first-child { border-top: 0; }
