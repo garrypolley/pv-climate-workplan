@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Prairie Village climate actions and the Community Climate Action Guide</title>
+  <meta name="description" content="A reading of a 45-row Prairie Village action table against the November 2025 Community Climate Action Guide. Every city action in the guide is cited once.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,620;1,9..144,500&family=Public+Sans:ital,wght@0,400;0,560;0,680;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect fill='%231b4332' width='32' height='32'/%3E%3Crect fill='%23e7d7b1' x='6' y='8' width='20' height='3'/%3E%3Crect fill='%23e7d7b1' x='6' y='15' width='14' height='3'/%3E%3Crect fill='%23e7d7b1' x='6' y='22' width='18' height='3'/%3E%3C/svg%3E">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="mast">
+    <div class="wrap mast-row">
+      <a class="brand" href="#top">Prairie Village climate actions</a>
+      <nav aria-label="On this page">
+        <a href="#link">How they connect</a>
+        <a href="#workplan">The 45 actions</a>
+        <a href="#crosswalk">Guide codes</a>
+        <a href="#residents">Residents’ half</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero wrap" id="top">
+      <p class="kicker">Prairie Village, Kansas · Environmental Committee table</p>
+      <h1>The action table, read against the Climate Action Guide.</h1>
+      <p class="lede">The November 2025 <a href="https://www.prairievillageks.gov/DocumentCenter/View/602/Community-Climate-Action-Guide-PDF">Community Climate Action Guide</a> tells residents what to do at home, and then lists 38 things the city itself could do. Those city items have short codes: EL, EE, T, and W. A printed action table uses those same codes in its Source column. This page is that table, with each code opened back up to the sentence in the guide.</p>
+      <div class="hero-links">
+        <a class="button" href="https://www.prairievillageks.gov/DocumentCenter/View/602/Community-Climate-Action-Guide-PDF">Community Climate Action Guide (PDF)</a>
+        <a class="button button-quiet" href="https://www.prairievillageks.gov/DocumentCenter/View/601/Prairie-Village-Municipal-Climate-Action-Plan-PDF">Municipal Climate Action Plan (PDF)</a>
+      </div>
+      <dl class="stats" id="stats" aria-label="Counts from the table and the guide"></dl>
+    </section>
+
+    <section class="wrap prose" id="link">
+      <h2>How the two documents connect</h2>
+      <p class="finding" id="finding"></p>
+      <div class="split">
+        <article>
+          <h3>The guide has three jobs</h3>
+          <ol class="jobs">
+            <li>
+              <strong>Habits and choices.</strong>
+              Low-cost or no-cost steps for households: thermostat setbacks, cold-water laundry, composting, walking.
+            </li>
+            <li>
+              <strong>Investments for lasting change.</strong>
+              Purchases: heat pumps, solar, an electric vehicle, a home composting system. The city already has a <a href="https://www.prairievillageks.gov/221">Residential Sustainability Grant</a> for some of these.
+            </li>
+            <li>
+              <strong>Prairie Village’s role.</strong>
+              Thirty-eight city actions, written with subject-matter working groups. This is the only part of the guide the action table cites. Codes run EL1–EL17, EE1–EE8, T1–T4, and W1–W9.
+            </li>
+          </ol>
+        </article>
+        <article>
+          <h3>The table has two kinds of rows</h3>
+          <p>Rows that cite a code are the city’s version of a guide action. Several codes often land in one row. Row 12, the Residential Sustainability Grant expansion, carries four: appliances (EL10), heat pumps (EE1), home waste diversion (W2), and home composting (W6). It also adds a local note the guide does not have, a multi-family glass grant.</p>
+          <p>Rows that say “Environmental Committee” are not in the guide. They are parks, pesticides, native plants, glass and bulky-item service, community gardens, council process, and the greenhouse-gas inventory.</p>
+          <p>The guide’s own targets sit behind both. Prairie Village joined Cities Race to Zero on October 4, 2021. The guide, written with KERAMIDA, uses a 2018 community inventory of 526,033 metric tons of CO2e and aims at a 50% cut by 2030 (263,017 metric tons) and net zero by 2050. City operations were about 1,500 metric tons in 2018 and are covered by the <a href="https://www.prairievillageks.gov/DocumentCenter/View/601/Prairie-Village-Municipal-Climate-Action-Plan-PDF">December 2023 municipal plan</a>, which this table does not walk through action by action.</p>
+        </article>
+      </div>
+
+      <h3>What the impact and cost columns are doing</h3>
+      <p>The printed table has no legend. The labels below are a reading of how the column is used, not a city definition. Relative cost is High, Medium, or Low. The page does not give dollar amounts. The guide rates its own actions by complexity, and that rating did not come through in the text of the PDF, so it is not repeated here.</p>
+      <div class="legend" id="legend"></div>
+      <div id="high-cost"></div>
+    </section>
+
+    <section class="band" id="workplan">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>The 45 actions</h2>
+          <p>Filter the printed table. Choose a guide code on any row to open that code in the crosswalk. Wording follows the page.</p>
+        </div>
+        <div class="filters" role="search">
+          <label class="search">
+            <span class="sr">Search actions</span>
+            <input id="q" type="search" placeholder="Search name, description, or code" autocomplete="off">
+          </label>
+          <fieldset>
+            <legend>Greenhouse-gas impact</legend>
+            <div class="chips" id="impact-filters"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Relative cost</legend>
+            <div class="chips" id="cost-filters"></div>
+          </fieldset>
+          <fieldset>
+            <legend>Where the row comes from</legend>
+            <div class="chips" id="origin-filters"></div>
+          </fieldset>
+        </div>
+        <p class="count" id="result-count" aria-live="polite"></p>
+        <div id="action-list"></div>
+      </div>
+    </section>
+
+    <section class="wrap" id="crosswalk">
+      <div class="section-head">
+        <h2>Every guide code, and the row that carries it</h2>
+        <p>Each code from “Prairie Village’s Role in Climate Action” appears on exactly one row. The sentence under the code is the guide’s. The link is the action table’s.</p>
+      </div>
+      <div id="crosswalk-list"></div>
+    </section>
+
+    <section class="wrap prose" id="residents">
+      <h2>The half of the guide this table does not list</h2>
+      <p>A resident using the guide will not find monarch waystations or a council agenda note in it. A reader of the table will not find “wash clothes in cold water.” Those resident steps are the first two chapters. Local groups named in the guide’s appendix, including Evergy, Climate Action KC, Bridging The Gap, and KC Can Compost, are the support listed for that half.</p>
+      <div id="resident-guide"></div>
+      <h3>City programs already next to this table</h3>
+      <ul class="plain">
+        <li><a href="https://www.prairievillageks.gov/618/Grants-Rebates">Grants and rebates</a>, including the Residential Sustainability Grant and the school sustainability grant named in row 29.</li>
+        <li><a href="https://www.prairievillageks.gov/365/Environmental-Committee">Environmental Committee</a>: mattress reuse, community gardens, the Mayor’s Monarch Pledge, and the public pesticide inventory. The committee meets on the fourth Wednesday at 5:30 p.m. at City Hall, except July and December.</li>
+        <li><a href="https://www.prairievillageks.gov/523">Contain the Rain</a> reimburses rain gardens, native plantings, and rain barrels. The table’s landscaping rows do not cite it.</li>
+      </ul>
+    </section>
+
+    <section class="wrap prose notes" id="notes">
+      <h2>How to read this page</h2>
+      <p>The 45 rows were transcribed from photographs of a printed table. The sheet in the photographs has no visible title, date, or note saying the City Council adopted it. Treat it as the working table it appears to be. Where a source cell adds a phrase after the code, that phrase is kept as a local note. “First Washington,” on the cardboard drop-off row, is printed that way.</p>
+      <p>Guide names and descriptions are from the November 2025 Community Climate Action Guide, the file the city posts as <a href="https://www.prairievillageks.gov/DocumentCenter/View/602/Community-Climate-Action-Guide-PDF">Document Center item 602</a>. Emission figures are the guide’s 2018 inventory, not a new calculation. The municipal operations plan is <a href="https://www.prairievillageks.gov/DocumentCenter/View/601/Prairie-Village-Municipal-Climate-Action-Plan-PDF">item 601</a>.</p>
+      <p>Row 45 names Waste Management. The guide names Republic Services as the curbside recycling collection provider. Both are left as their documents say them.</p>
+    </section>
+  </main>
+
+  <footer class="wrap foot">
+    <p>Prairie Village, Kansas. An unofficial reading of a committee table against the city’s November 2025 Community Climate Action Guide.</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
