@@ -526,6 +526,11 @@ const ACTIONS = [
 // Impact is climate and community benefit. Feasibility is the horizontal axis.
 // Values are the nearest tenth. Rows that shared one dot share one pair of numbers.
 // "47" and "2A" are labels on the chart and are not rows in ACTIONS.
+// 47 and 48 are topics the group numbered. A pencil circle means they did not agree with the placement.
+const OUTSIDE = {
+  47: "Feasibility of ensuring large item and other recycling is actually occurring, rather than going to a landfill",
+  48: "School education and involvement",
+};
 const GROUP_RATINGS = [
   { id: 1, impact: 5.5, feasibility: 3.9 },
   { id: 4, impact: 4.5, feasibility: 4.6 },
@@ -570,7 +575,8 @@ const GROUP_RATINGS = [
 
 // Placement on the six-box sheet photographed after the scatter chart.
 // color is the sticker. pencil means a hand-drawn circle and no sticker.
-// ring means a pencil circle around a sticker: the group did not agree with the original chart placement.
+// ring means a pencil circle around a sticker: the group did not agree with the placement.
+// pencil, including 47 and 48, is the same disagreement with no sticker inside the circle.
 // The sheet does not define the colors.
 // 16 and 17 are written on the sticker for 23. One yellow sticker is scribbled out.
 const BOARD = [

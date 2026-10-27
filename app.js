@@ -507,7 +507,7 @@ function renderRatings() {
         text: label,
         "aria-label": action
           ? `${label}. ${action.name}. Impact ${rating.impact.toFixed(1)}, feasibility ${rating.feasibility.toFixed(1)}.`
-          : `${label} is on the chart and is not one of the 45 rows. Impact ${rating.impact.toFixed(1)}, feasibility ${rating.feasibility.toFixed(1)}.`,
+          : `${label}. ${outsideName(label) || "On the chart and not one of the 45 rows."} Impact ${rating.impact.toFixed(1)}, feasibility ${rating.feasibility.toFixed(1)}.`,
       }));
       group.append(link);
       cursor += widths[index];
@@ -526,12 +526,16 @@ function renderRatings() {
     ]));
   }
   const extraText = extras
-    .map((rating) => `${rating.id} (impact ${rating.impact.toFixed(1)}, feasibility ${rating.feasibility.toFixed(1)})`)
-    .join(" and ");
+    .map((rating) => {
+      const name = outsideName(rating.id);
+      const scores = `impact ${rating.impact.toFixed(1)}, feasibility ${rating.feasibility.toFixed(1)}`;
+      return name ? `${rating.id}, ${name} (${scores})` : `${rating.id} (${scores})`;
+    })
+    .join("; ");
   notes.replaceChildren(
     el("p", { text: "These rows have no point on the chart." }),
     missingList,
-    el("p", { text: `Two labels on the chart are not rows in the table: ${extraText}. Those labels are marked in clay.` }),
+    el("p", { text: `Labels on the chart that are not rows in the table: ${extraText}. Those labels are marked in clay. 48, ${outsideName(48)}, is a pencil circle on the six-box sheet and has no point on the chart.` }),
   );
 }
 
@@ -548,6 +552,11 @@ function chartBoxFor(rating) {
   const impact = rating.impact >= 4.3 ? "higher" : "lower";
   const feasibility = rating.feasibility < 3.6 ? "lower" : rating.feasibility < 4.2 ? "moderate" : "higher";
   return BOXES.find((box) => box.impact === impact && box.feasibility === feasibility);
+}
+
+function outsideName(id) {
+  if (id == null || typeof OUTSIDE === "undefined") return "";
+  return OUTSIDE[id] || OUTSIDE[String(id)] || "";
 }
 
 function rowLink(id, name) {
@@ -572,12 +581,16 @@ function renderBoard() {
       const label = place.scribbled ? "×" : String(place.id);
       const action = place.id != null ? actionById[place.id] : null;
       const attrs = { class: classes.join(" "), text: label };
-      const ringNote = place.ring ? " Circled: the group did not agree with the original placement on the chart." : "";
+      const circled = place.ring || place.color === "pencil";
+      const ringNote = circled ? " Circled: the group did not agree with the placement." : "";
+      const named = outsideName(place.id);
       if (place.scribbled) attrs["aria-label"] = "Yellow sticker scribbled out. The number is not readable.";
       else if (place.writtenOn) attrs["aria-label"] = `${place.id}, written on the sticker for ${place.writtenOn}.${ringNote}`;
-      else if (!action) attrs["aria-label"] = `${place.id} is on the sheet and is not one of the 45 rows.${ringNote}`;
+      else if (!action) attrs["aria-label"] = named
+        ? `${place.id}. ${named}.${ringNote}`
+        : `${place.id} is on the sheet and is not one of the 45 rows.${ringNote}`;
       else if (place.ring) attrs["aria-label"] = `${place.id}.${ringNote}`;
-      if (place.ring) attrs.title = "Circled: the group did not agree with the original placement on the chart.";
+      if (circled) attrs.title = "Circled: the group did not agree with the placement.";
       const chip = action ? el("a", { ...attrs, href: `#a-${place.id}` }) : el("span", attrs);
       chips.append(chip);
     }
@@ -585,6 +598,9 @@ function renderBoard() {
       el("h3", { text: box.name }),
       chips,
     ]);
+    if (box.id === "strategic") {
+      cell.append(el("p", { class: "note board-note", text: `47 is the ${outsideName(47).charAt(0).toLowerCase()}${outsideName(47).slice(1)}. 48 is ${outsideName(48).charAt(0).toLowerCase()}${outsideName(48).slice(1)}. Both are pencil circles, so the group did not agree with the placement. Neither is one of the 45 rows.` }));
+    }
     if (box.id === "high-value") {
       cell.append(el("p", { class: "note board-note", text: "16 and 17 are written on the sticker for 23." }));
     }
@@ -622,7 +638,9 @@ function renderBoard() {
     for (const item of items) {
       const who = item.action
         ? rowLink(item.action.id, item.action.name)
-        : el("span", { text: `${item.place.id}, which is not a row in the table` });
+        : el("span", { text: outsideName(item.place.id)
+          ? `${item.place.id}. ${outsideName(item.place.id)}, which is not a row in the table`
+          : `${item.place.id}, which is not a row in the table` });
       const sentence = ` Chart impact ${item.rating.impact.toFixed(1)}, feasibility ${item.rating.feasibility.toFixed(1)}, which reads as ${item.chartBox.name}. The sheet puts it in ${item.boardBox.name}.`;
       list.append(el("li", {}, [who, el("span", { text: sentence })]));
     }
@@ -634,7 +652,9 @@ function renderBoard() {
     .forEach((item, index) => {
       if (index) sameLine.append(el("span", { text: ", " }));
       if (item.action) sameLine.append(el("a", { href: `#a-${item.action.id}`, text: String(item.action.id) }));
-      else sameLine.append(el("span", { text: `${item.place.id} (not a table row)` }));
+      else sameLine.append(el("span", { text: outsideName(item.place.id)
+        ? `${item.place.id} (${outsideName(item.place.id)}; not a table row)`
+        : `${item.place.id} (not a table row)` }));
     });
   sameLine.append(el("span", { text: "." }));
 
@@ -646,7 +666,7 @@ function renderBoard() {
   for (const rating of chartOnly) {
     const action = actionById[rating.id];
     chartOnlyList.append(el("li", {}, [
-      action ? rowLink(action.id, action.name) : el("span", { text: String(rating.id) }),
+      action ? rowLink(action.id, action.name) : el("span", { text: outsideName(rating.id) ? `${rating.id}. ${outsideName(rating.id)}` : String(rating.id) }),
       el("span", { text: action
         ? " was on the chart and is not on the sheet."
         : " was on the chart, is not on the sheet, and is not a row in the table." }),
@@ -657,7 +677,7 @@ function renderBoard() {
     const action = actionById[place.id];
     const box = BOX_BY_ID[place.box];
     sheetOnlyList.append(el("li", {}, [
-      action ? rowLink(action.id, action.name) : el("span", { text: String(place.id) }),
+      action ? rowLink(action.id, action.name) : el("span", { text: outsideName(place.id) ? `${place.id}. ${outsideName(place.id)}` : String(place.id) }),
       el("span", { text: `${action ? "" : ", which is not a row in the table,"} is in ${box.name} on the sheet and has no point on the chart.` }),
     ]));
   }
@@ -756,7 +776,7 @@ function renderSequence() {
   notes.replaceChildren(
     el("p", { text: "The recommendation has no year for these rows. They have no box on the board." }),
     list,
-    el("p", { text: "47 and 48 are pencil circles on the six-box board and are not rows in the table, so the recommendation gives them no year. On the later sequencing sheet, both are written in 2030+ Awareness." }),
+    el("p", { text: `47 is the ${outsideName(47).charAt(0).toLowerCase()}${outsideName(47).slice(1)}. 48 is ${outsideName(48).charAt(0).toLowerCase()}${outsideName(48).slice(1)}. Both are pencil circles on the six-box board, so the group did not agree with the placement, and neither is a row in the table. The recommendation gives them no year. On the sequencing sheet, both are written in 2030+ Awareness.` }),
   );
 }
 
@@ -770,8 +790,8 @@ function placedNote(place, compareEarlier, brief) {
     const board = BOARD.find((item) => item.id === place.id);
     const box = board ? BOX_BY_ID[board.box].name : "the six-box sheet";
     parts.push(brief
-      ? "Written in pencil. Not a row in the action table."
-      : `On the six-box sheet, ${place.id} is a pencil circle in ${box}. It is not a row in the table. The recommendation had no year for it.`);
+      ? `Pencil circle in ${box}. The circle means the group did not agree with the placement.`
+      : `Pencil circle in ${box}, so the group did not agree with the placement. It is not one of the 45 rows. The recommendation had no year for it.`);
   } else if (brief) {
     const board = boardById[action.id];
     parts.push(board
@@ -818,7 +838,7 @@ function renderPlacement(places, prefix, options = {}) {
       chips.append(chip);
       const title = action
         ? el("a", { href: `#a-${action.id}`, text: action.name })
-        : el("span", { text: "Written in pencil." });
+        : el("span", { text: outsideName(place.id) || "Written in pencil." });
       list.append(el("li", { id: `${prefix}-${place.id}` }, [
         title,
         el("p", { class: "note", text: placedNote(place, compareEarlier, brief) }),
@@ -842,7 +862,7 @@ function renderPlacement(places, prefix, options = {}) {
     const action = actionById[place.id];
     const who = action
       ? el("a", { href: `#a-${action.id}`, text: `${place.id}. ${action.name}` })
-      : el("span", { text: String(place.id) });
+      : el("span", { text: outsideName(place.id) ? `${place.id}. ${outsideName(place.id)}` : String(place.id) });
     const recommended = action ? recommendedWhen(action) : null;
     const sentence = !recommended
       ? ` is in ${WHEN_BY_ID[place.when].name}. The recommendation had no year for it.`
