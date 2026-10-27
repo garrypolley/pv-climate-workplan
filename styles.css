@@ -262,7 +262,11 @@ td.board-cell a:hover { text-decoration: underline; }
 .when-col li { margin: 0 0 0.7rem; }
 .when-col .note { margin: 0.15rem 0 0; }
 .when-col .stickers { margin: 0.45rem 0 0.7rem; }
-#placed, #later { padding-top: 2.2rem; }
+#placed, #compare { padding-top: 2.2rem; }
+#outcome { padding-top: 0.2rem; }
+.part { border-top: 1px solid var(--ink); margin-top: 1.6rem; padding: 1.8rem 0 0.2rem; }
+.work-nav { display: flex; flex-wrap: wrap; gap: 0.45rem 1rem; margin: 0.2rem 0 0.4rem; }
+.work-nav a { font-weight: 560; }
 #action-list .sheet { min-width: 1220px; }
 td.score { font-variant-numeric: tabular-nums; white-space: nowrap; }
 td.score a { font-weight: 680; text-decoration: none; }

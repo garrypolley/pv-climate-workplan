@@ -757,7 +757,7 @@ function renderSequence() {
   );
 }
 
-function placedNote(place, compareEarlier) {
+function placedNote(place, compareEarlier, brief) {
   const action = actionById[place.id];
   const parts = [];
   if (place.onLine) {
@@ -766,7 +766,14 @@ function placedNote(place, compareEarlier) {
   if (!action) {
     const board = BOARD.find((item) => item.id === place.id);
     const box = board ? BOX_BY_ID[board.box].name : "the six-box sheet";
-    parts.push(`On the six-box sheet, ${place.id} is a pencil circle in ${box}. It is not a row in the table. The recommendation had no year for it.`);
+    parts.push(brief
+      ? "Written in pencil. Not a row in the action table."
+      : `On the six-box sheet, ${place.id} is a pencil circle in ${box}. It is not a row in the table. The recommendation had no year for it.`);
+  } else if (brief) {
+    const board = boardById[action.id];
+    parts.push(board
+      ? `${BOX_BY_ID[board.box].name}. Printed cost ${action.cost}.`
+      : `Not on the six-box sheet. Printed cost ${action.cost}.`);
   } else if (!boardById[action.id]) {
     parts.push(`This row is not on the six-box sheet, so the recommendation had no year for it. Printed cost ${action.cost}.`);
   } else {
@@ -777,7 +784,7 @@ function placedNote(place, compareEarlier) {
       : `The recommendation had this in ${WHEN_BY_ID[recommended].name}.`;
     parts.push(`${box.name}. Printed cost ${action.cost}. ${where}`);
   }
-  if (compareEarlier) {
+  if (compareEarlier && !brief) {
     const previous = SEQUENCE_PLACED.find((item) => item.id === place.id);
     parts.push(previous && previous.when === place.when
       ? "It was already in this column on the earlier photograph."
@@ -786,7 +793,9 @@ function placedNote(place, compareEarlier) {
   return parts.join(" ");
 }
 
-function renderPlacement(places, prefix, compareEarlier) {
+function renderPlacement(places, prefix, options = {}) {
+  const compareEarlier = options.compareEarlier;
+  const brief = options.brief;
   const mount = document.getElementById(`${prefix}-columns`);
   const grid = el("div", { class: "when-grid" });
   const earlier = [];
@@ -809,7 +818,7 @@ function renderPlacement(places, prefix, compareEarlier) {
         : el("span", { text: "Written in pencil." });
       list.append(el("li", { id: `${prefix}-${place.id}` }, [
         title,
-        el("p", { class: "note", text: placedNote(place, compareEarlier) }),
+        el("p", { class: "note", text: placedNote(place, compareEarlier, brief) }),
       ]));
       const recommended = action ? recommendedWhen(action) : null;
       if (!recommended) added.push(place);
@@ -912,8 +921,8 @@ renderResidents();
 renderRatings();
 renderBoard();
 renderSequence();
-renderPlacement(SEQUENCE_PLACED, "placed", false);
-renderPlacement(SEQUENCE_LATER, "later", true);
+renderPlacement(SEQUENCE_PLACED, "placed", {});
+renderPlacement(SEQUENCE_LATER, "later", { compareEarlier: true, brief: true });
 openHash();
 window.addEventListener("hashchange", openHash);
 
