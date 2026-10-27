@@ -570,7 +570,8 @@ const GROUP_RATINGS = [
 
 // Placement on the six-box sheet photographed after the scatter chart.
 // color is the sticker. pencil means a hand-drawn circle and no sticker.
-// ring means a pencil circle around a sticker. The sheet does not define the colors.
+// ring means a pencil circle around a sticker: the group did not agree with the original chart placement.
+// The sheet does not define the colors.
 // 16 and 17 are written on the sticker for 23. One yellow sticker is scribbled out.
 const BOARD = [
   { id: 9, box: "strategic", color: "yellow", ring: true },

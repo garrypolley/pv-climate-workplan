@@ -572,9 +572,12 @@ function renderBoard() {
       const label = place.scribbled ? "×" : String(place.id);
       const action = place.id != null ? actionById[place.id] : null;
       const attrs = { class: classes.join(" "), text: label };
+      const ringNote = place.ring ? " Circled: the group did not agree with the original placement on the chart." : "";
       if (place.scribbled) attrs["aria-label"] = "Yellow sticker scribbled out. The number is not readable.";
-      else if (place.writtenOn) attrs["aria-label"] = `${place.id}, written on the sticker for ${place.writtenOn}`;
-      else if (!action) attrs["aria-label"] = `${place.id} is on the sheet and is not one of the 45 rows`;
+      else if (place.writtenOn) attrs["aria-label"] = `${place.id}, written on the sticker for ${place.writtenOn}.${ringNote}`;
+      else if (!action) attrs["aria-label"] = `${place.id} is on the sheet and is not one of the 45 rows.${ringNote}`;
+      else if (place.ring) attrs["aria-label"] = `${place.id}.${ringNote}`;
+      if (place.ring) attrs.title = "Circled: the group did not agree with the original placement on the chart.";
       const chip = action ? el("a", { ...attrs, href: `#a-${place.id}` }) : el("span", attrs);
       chips.append(chip);
     }
