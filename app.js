@@ -730,7 +730,7 @@ function renderSequence() {
       if (left && right && left.feasibility !== right.feasibility) return right.feasibility - left.feasibility;
       return a.id - b.id;
     });
-    const list = el("ol");
+    const list = el("ul");
     for (const action of items) {
       const place = boardById[action.id];
       list.append(el("li", {}, [

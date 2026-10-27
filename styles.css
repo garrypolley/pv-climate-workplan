@@ -258,7 +258,7 @@ td.board-cell a:hover { text-decoration: underline; }
 .when-col.planning { border-color: var(--wheat); }
 .when-col.awareness { border-color: var(--support); }
 .when-col h3 { font-size: 1.15rem; }
-.when-col ol { margin: 0.2rem 0 0; padding-left: 1.2rem; }
+.when-col ul { list-style: none; margin: 0.2rem 0 0; padding: 0; }
 .when-col li { margin: 0 0 0.7rem; }
 .when-col .note { margin: 0.15rem 0 0; }
 #action-list .sheet { min-width: 1220px; }
