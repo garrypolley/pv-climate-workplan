@@ -616,3 +616,21 @@ const BOARD = [
   { id: 45, box: "efficient", color: "yellow" },
   { id: 41, box: "efficient", color: "pink" },
 ];
+
+// Numbers the group has placed on the sequencing sheet.
+// Order inside a column is top to bottom, then left to right, as they sit on the sheet.
+// color matches the sticker. handwritten means pencil, with no sticker.
+// The sheet does not define the colors. 48 is not a row in the action table.
+const SEQUENCE_PLACED = [
+  { id: 8, when: "opportunities", color: "pink" },
+  { id: 7, when: "opportunities", color: "green" },
+  { id: 38, when: "opportunities", color: "pink" },
+  { id: 12, when: "opportunities", color: "yellow" },
+  { id: 36, when: "opportunities", color: "yellow" },
+  { id: 21, when: "budget", color: "yellow" },
+  { id: 4, when: "budget", color: "green" },
+  { id: 9, when: "planning", color: "yellow" },
+  { id: 11, when: "awareness", color: "pink" },
+  { id: 10, when: "awareness", color: "green" },
+  { id: 48, when: "awareness", handwritten: true },
+];

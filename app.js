@@ -751,9 +751,88 @@ function renderSequence() {
   const list = el("ul", { class: "plain" });
   for (const action of waiting) list.append(el("li", {}, [el("a", { href: `#a-${action.id}`, text: `${action.id}. ${action.name}` })]));
   notes.replaceChildren(
-    el("p", { text: "These rows are not on the sequencing sheet. They have no box on the board, so the recommendation has no year for them." }),
+    el("p", { text: "The recommendation has no year for these rows. They have no box on the board." }),
     list,
-    el("p", { text: "47 and 48 are pencil circles on the board and are not rows in the table, so they are not given a year." }),
+    el("p", { text: "47 and 48 are pencil circles on the six-box board and are not rows in the table, so the recommendation gives them no year. 48 is written on the sequencing sheet, in 2030+ Awareness." }),
+  );
+}
+
+function placedNote(place) {
+  const action = actionById[place.id];
+  if (!action) {
+    return "On the six-box sheet, 48 is a pencil circle in Strategic Priorities. It is not a row in the table. The recommendation had no year for it.";
+  }
+  const box = BOX_BY_ID[boardById[action.id].box];
+  const recommended = recommendedWhen(action);
+  const where = recommended === place.when
+    ? "The recommendation had this in the same column."
+    : `The recommendation had this in ${WHEN_BY_ID[recommended].name}.`;
+  return `${box.name}. Printed cost ${action.cost}. ${where}`;
+}
+
+function renderPlaced() {
+  const mount = document.getElementById("placed-columns");
+  const grid = el("div", { class: "when-grid" });
+  const earlier = [];
+  const later = [];
+  const same = [];
+  const added = [];
+  for (const column of WHEN) {
+    const items = SEQUENCE_PLACED.filter((place) => place.when === column.id);
+    const chips = el("div", { class: "stickers" });
+    const list = el("ul");
+    for (const place of items) {
+      const action = actionById[place.id];
+      const chipClass = place.handwritten ? "sticker pencil" : `sticker ${place.color}`;
+      const chip = action
+        ? el("a", { class: chipClass, href: `#a-${action.id}`, text: String(place.id) })
+        : el("span", { class: chipClass, text: String(place.id) });
+      chips.append(chip);
+      const title = action
+        ? el("a", { href: `#a-${action.id}`, text: action.name })
+        : el("span", { text: "Written in pencil." });
+      list.append(el("li", { id: `placed-${place.id}` }, [
+        title,
+        el("p", { class: "note", text: placedNote(place) }),
+      ]));
+      const recommended = action ? recommendedWhen(action) : null;
+      if (!recommended) added.push(place);
+      else if (recommended === place.when) same.push(place);
+      else if (WHEN_RANK[place.when] < WHEN_RANK[recommended]) earlier.push(place);
+      else later.push(place);
+    }
+    grid.append(el("article", { class: `when-col ${column.className}`, id: `placed-${column.id}` }, [
+      el("h3", { text: column.name }),
+      el("p", { class: "note", text: `${items.length} on the sheet` }),
+      chips,
+      list,
+    ]));
+  }
+  mount.replaceChildren(grid);
+
+  const line = (place) => {
+    const action = actionById[place.id];
+    const who = action
+      ? el("a", { href: `#a-${action.id}`, text: `${place.id}. ${action.name}` })
+      : el("span", { text: String(place.id) });
+    const recommended = action ? recommendedWhen(action) : null;
+    const sentence = !recommended
+      ? ` is written in ${WHEN_BY_ID[place.when].name}. The recommendation had no year for it.`
+      : recommended === place.when
+        ? ` is in ${WHEN_BY_ID[place.when].name}, the same column as the recommendation.`
+        : ` is in ${WHEN_BY_ID[place.when].name}. The recommendation had it in ${WHEN_BY_ID[recommended].name}.`;
+    return el("li", {}, [who, el("span", { text: sentence })]);
+  };
+  const diff = document.getElementById("placed-diff");
+  diff.replaceChildren(
+    el("h3", { text: "Earlier than the recommendation" }),
+    el("ul", { class: "plain" }, earlier.map(line)),
+    el("h3", { text: "Later than the recommendation" }),
+    el("ul", { class: "plain" }, later.map(line)),
+    el("h3", { text: "The same column" }),
+    el("ul", { class: "plain" }, same.map(line)),
+    el("h3", { text: "Written on the sheet, with no recommended year" }),
+    el("ul", { class: "plain" }, added.map(line)),
   );
 }
 
@@ -779,7 +858,7 @@ function openHash() {
   if (hash.startsWith("a-")) {
     const id = Number(hash.slice(2));
     if (actionById[id]) reveal(id);
-  } else if (hash.startsWith("g-") || hash.startsWith("rate-") || hash.startsWith("box-") || hash.startsWith("when-")) {
+  } else if (hash.startsWith("g-") || hash.startsWith("rate-") || hash.startsWith("box-") || hash.startsWith("when-") || hash.startsWith("placed-")) {
     document.getElementById(hash)?.scrollIntoView({ block: "center" });
   }
 }
@@ -803,6 +882,7 @@ renderResidents();
 renderRatings();
 renderBoard();
 renderSequence();
+renderPlaced();
 openHash();
 window.addEventListener("hashchange", openHash);
 
