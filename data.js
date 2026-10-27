@@ -634,3 +634,40 @@ const SEQUENCE_PLACED = [
   { id: 10, when: "awareness", color: "green" },
   { id: 48, when: "awareness", handwritten: true },
 ];
+
+// The same sheet after more stickers. Marks from SEQUENCE_PLACED stayed in the same columns.
+// onLine names the neighboring column when a sticker sits on the divider.
+// The number is counted in `when`. 47 and 48 are pencil, and neither is a table row.
+const SEQUENCE_LATER = [
+  { id: 8, when: "opportunities", color: "pink" },
+  { id: 7, when: "opportunities", color: "green" },
+  { id: 38, when: "opportunities", color: "pink" },
+  { id: 12, when: "opportunities", color: "yellow" },
+  { id: 41, when: "opportunities", color: "pink" },
+  { id: 36, when: "opportunities", color: "yellow" },
+  { id: 45, when: "opportunities", color: "yellow", onLine: "budget" },
+  { id: 32, when: "budget", color: "pink", onLine: "planning" },
+  { id: 21, when: "budget", color: "yellow" },
+  { id: 4, when: "budget", color: "green" },
+  { id: 40, when: "budget", color: "green", onLine: "planning" },
+  { id: 2, when: "budget", color: "pink" },
+  { id: 1, when: "budget", color: "green" },
+  { id: 25, when: "budget", color: "green" },
+  { id: 22, when: "budget", color: "green" },
+  { id: 26, when: "budget", color: "pink" },
+  { id: 24, when: "budget", color: "yellow" },
+  { id: 31, when: "budget", color: "green" },
+  { id: 30, when: "budget", color: "yellow" },
+  { id: 43, when: "budget", color: "green" },
+  { id: 13, when: "planning", color: "green" },
+  { id: 9, when: "planning", color: "yellow" },
+  { id: 23, when: "planning", color: "pink" },
+  { id: 18, when: "planning", color: "yellow" },
+  { id: 42, when: "planning", color: "yellow" },
+  { id: 11, when: "awareness", color: "pink" },
+  { id: 48, when: "awareness", handwritten: true },
+  { id: 10, when: "awareness", color: "green" },
+  { id: 47, when: "awareness", handwritten: true },
+  { id: 29, when: "awareness", color: "pink" },
+  { id: 44, when: "awareness", color: "pink", onLine: "planning" },
+];

@@ -262,7 +262,7 @@ td.board-cell a:hover { text-decoration: underline; }
 .when-col li { margin: 0 0 0.7rem; }
 .when-col .note { margin: 0.15rem 0 0; }
 .when-col .stickers { margin: 0.45rem 0 0.7rem; }
-#placed { padding-top: 2.2rem; }
+#placed, #later { padding-top: 2.2rem; }
 #action-list .sheet { min-width: 1220px; }
 td.score { font-variant-numeric: tabular-nums; white-space: nowrap; }
 td.score a { font-weight: 680; text-decoration: none; }

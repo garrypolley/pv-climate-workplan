@@ -6,7 +6,7 @@ The guide’s chapter “Prairie Village’s Role in Climate Action” lists 38 
 
 The table was transcribed from photographs. The sheet shows no title, date, or adoption line. Guide wording comes from the city’s PDF.
 
-The same page carries the four-question feasibility scale, the six-box prioritization matrix, the group’s impact-and-feasibility chart, the later sheet that files actions into those six boxes, and a recommended sequence for 2027, 2028, 2029/2030, and 2030+. The sequence is a recommendation from those ratings. A later section records the stickers the group has started placing on that sheet, and where those stickers differ from the recommendation.
+The same page carries the four-question feasibility scale, the six-box prioritization matrix, the group’s impact-and-feasibility chart, the later sheet that files actions into those six boxes, and a recommended sequence for 2027, 2028, 2029/2030, and 2030+. The sequence is a recommendation from those ratings. Two sections record the sequencing sheet: the first photograph of stickers, and a later photograph with more stickers. Both note where those years differ from the recommendation.
 
 Live site: https://climate.garrypolley.com
 

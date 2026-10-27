@@ -753,32 +753,48 @@ function renderSequence() {
   notes.replaceChildren(
     el("p", { text: "The recommendation has no year for these rows. They have no box on the board." }),
     list,
-    el("p", { text: "47 and 48 are pencil circles on the six-box board and are not rows in the table, so the recommendation gives them no year. 48 is written on the sequencing sheet, in 2030+ Awareness." }),
+    el("p", { text: "47 and 48 are pencil circles on the six-box board and are not rows in the table, so the recommendation gives them no year. On the later sequencing sheet, both are written in 2030+ Awareness." }),
   );
 }
 
-function placedNote(place) {
+function placedNote(place, compareEarlier) {
   const action = actionById[place.id];
-  if (!action) {
-    return "On the six-box sheet, 48 is a pencil circle in Strategic Priorities. It is not a row in the table. The recommendation had no year for it.";
+  const parts = [];
+  if (place.onLine) {
+    parts.push(`The sticker sits on the line between this column and ${WHEN_BY_ID[place.onLine].name}. The number is read in ${WHEN_BY_ID[place.when].name}.`);
   }
-  const box = BOX_BY_ID[boardById[action.id].box];
-  const recommended = recommendedWhen(action);
-  const where = recommended === place.when
-    ? "The recommendation had this in the same column."
-    : `The recommendation had this in ${WHEN_BY_ID[recommended].name}.`;
-  return `${box.name}. Printed cost ${action.cost}. ${where}`;
+  if (!action) {
+    const board = BOARD.find((item) => item.id === place.id);
+    const box = board ? BOX_BY_ID[board.box].name : "the six-box sheet";
+    parts.push(`On the six-box sheet, ${place.id} is a pencil circle in ${box}. It is not a row in the table. The recommendation had no year for it.`);
+  } else if (!boardById[action.id]) {
+    parts.push(`This row is not on the six-box sheet, so the recommendation had no year for it. Printed cost ${action.cost}.`);
+  } else {
+    const box = BOX_BY_ID[boardById[action.id].box];
+    const recommended = recommendedWhen(action);
+    const where = recommended === place.when
+      ? "The recommendation had this in the same column."
+      : `The recommendation had this in ${WHEN_BY_ID[recommended].name}.`;
+    parts.push(`${box.name}. Printed cost ${action.cost}. ${where}`);
+  }
+  if (compareEarlier) {
+    const previous = SEQUENCE_PLACED.find((item) => item.id === place.id);
+    parts.push(previous && previous.when === place.when
+      ? "It was already in this column on the earlier photograph."
+      : "This mark was not on the earlier photograph.");
+  }
+  return parts.join(" ");
 }
 
-function renderPlaced() {
-  const mount = document.getElementById("placed-columns");
+function renderPlacement(places, prefix, compareEarlier) {
+  const mount = document.getElementById(`${prefix}-columns`);
   const grid = el("div", { class: "when-grid" });
   const earlier = [];
   const later = [];
   const same = [];
   const added = [];
   for (const column of WHEN) {
-    const items = SEQUENCE_PLACED.filter((place) => place.when === column.id);
+    const items = places.filter((place) => place.when === column.id);
     const chips = el("div", { class: "stickers" });
     const list = el("ul");
     for (const place of items) {
@@ -791,9 +807,9 @@ function renderPlaced() {
       const title = action
         ? el("a", { href: `#a-${action.id}`, text: action.name })
         : el("span", { text: "Written in pencil." });
-      list.append(el("li", { id: `placed-${place.id}` }, [
+      list.append(el("li", { id: `${prefix}-${place.id}` }, [
         title,
-        el("p", { class: "note", text: placedNote(place) }),
+        el("p", { class: "note", text: placedNote(place, compareEarlier) }),
       ]));
       const recommended = action ? recommendedWhen(action) : null;
       if (!recommended) added.push(place);
@@ -801,7 +817,7 @@ function renderPlaced() {
       else if (WHEN_RANK[place.when] < WHEN_RANK[recommended]) earlier.push(place);
       else later.push(place);
     }
-    grid.append(el("article", { class: `when-col ${column.className}`, id: `placed-${column.id}` }, [
+    grid.append(el("article", { class: `when-col ${column.className}`, id: `${prefix}-${column.id}` }, [
       el("h3", { text: column.name }),
       el("p", { class: "note", text: `${items.length} on the sheet` }),
       chips,
@@ -817,23 +833,37 @@ function renderPlaced() {
       : el("span", { text: String(place.id) });
     const recommended = action ? recommendedWhen(action) : null;
     const sentence = !recommended
-      ? ` is written in ${WHEN_BY_ID[place.when].name}. The recommendation had no year for it.`
+      ? ` is in ${WHEN_BY_ID[place.when].name}. The recommendation had no year for it.`
       : recommended === place.when
         ? ` is in ${WHEN_BY_ID[place.when].name}, the same column as the recommendation.`
         : ` is in ${WHEN_BY_ID[place.when].name}. The recommendation had it in ${WHEN_BY_ID[recommended].name}.`;
     return el("li", {}, [who, el("span", { text: sentence })]);
   };
-  const diff = document.getElementById("placed-diff");
-  diff.replaceChildren(
+  const diff = document.getElementById(`${prefix}-diff`);
+  const blocks = [
     el("h3", { text: "Earlier than the recommendation" }),
     el("ul", { class: "plain" }, earlier.map(line)),
     el("h3", { text: "Later than the recommendation" }),
     el("ul", { class: "plain" }, later.map(line)),
     el("h3", { text: "The same column" }),
     el("ul", { class: "plain" }, same.map(line)),
-    el("h3", { text: "Written on the sheet, with no recommended year" }),
+    el("h3", { text: "On the sheet, with no recommended year" }),
     el("ul", { class: "plain" }, added.map(line)),
-  );
+  ];
+  if (compareEarlier) {
+    const placedIds = new Set(places.filter((place) => actionById[place.id]).map((place) => place.id));
+    const waiting = ACTIONS.filter((action) => !placedIds.has(action.id));
+    const waitingList = el("ul", { class: "plain" });
+    for (const action of waiting) {
+      waitingList.append(el("li", {}, [el("a", { href: `#a-${action.id}`, text: `${action.id}. ${action.name}` })]));
+    }
+    blocks.push(
+      el("h3", { text: "Still only in the recommendation" }),
+      el("p", { text: "These rows are not on this photograph." }),
+      waitingList,
+    );
+  }
+  diff.replaceChildren(...blocks);
 }
 
 function reveal(actionId) {
@@ -858,7 +888,7 @@ function openHash() {
   if (hash.startsWith("a-")) {
     const id = Number(hash.slice(2));
     if (actionById[id]) reveal(id);
-  } else if (hash.startsWith("g-") || hash.startsWith("rate-") || hash.startsWith("box-") || hash.startsWith("when-") || hash.startsWith("placed-")) {
+  } else if (hash.startsWith("g-") || hash.startsWith("rate-") || hash.startsWith("box-") || hash.startsWith("when-") || hash.startsWith("placed-") || hash.startsWith("later-")) {
     document.getElementById(hash)?.scrollIntoView({ block: "center" });
   }
 }
@@ -882,7 +912,8 @@ renderResidents();
 renderRatings();
 renderBoard();
 renderSequence();
-renderPlaced();
+renderPlacement(SEQUENCE_PLACED, "placed", false);
+renderPlacement(SEQUENCE_LATER, "later", true);
 openHash();
 window.addEventListener("hashchange", openHash);
 
